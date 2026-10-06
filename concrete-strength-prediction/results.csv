@@ -1,5 +1,0 @@
-model,rmse_mpa,r2
-Linear (raw),9.8,0.628
-"Linear (+ w/b, log age)",6.57,0.832
-Random forest,4.69,0.915
-Gradient boosting,4.4,0.925
