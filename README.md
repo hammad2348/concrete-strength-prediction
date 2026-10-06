@@ -10,11 +10,17 @@ Final model: gradient boosting, **4.72 ± 0.38 MPa** cross-validated RMSE.
 
 Measured strength runs from 2.3 to 82.6 MPa with a mean of 35.8, so the set spans early-age samples through to high-performance mixes. Ages are not evenly spread: the median is 28 days and testing happened at about a dozen standard ages, with a thin tail out to 365 days.
 
+![Cement, water/cement ratio and age against compressive strength](fig1_exploration.png)
+
+Cement content on its own is a loose predictor: at 200 kg/m³ the measured strength ranges from about 5 to 60 MPa. The water/cement ratio is tighter. Age forms vertical stripes because testing happened at standard ages rather than continuously.
+
 ## Approach
 
 Rather than feeding the eight raw quantities straight into a model, I added two features that concrete theory says should matter, then measured whether they helped.
 
 **Water-to-binder ratio.** Abrams' law states that strength falls as the water-to-cement ratio rises. Plotting water/cement against strength produced ratios up to 1.9, which is not a real mix. Those points are mixes with low cement but high slag or fly ash content: dividing by cement alone ignores the other binders. Slag and fly ash are cementitious, so they belong in the denominator. Using water / (cement + slag + fly ash) brought the maximum down to 0.90 and tightened the relationship.
+
+![Strength against water/cement, then against water/binder](fig2_water_binder.png)
 
 **Log of age.** Strength gain against time is roughly logarithmic, which is why 28 days is the standard test age. Plotted on a log axis, the trend straightens out.
 
@@ -42,6 +48,8 @@ I quote the cross-validated figure as the headline because the single test split
 
 ## What the model used
 
+![Feature importances, and predicted against measured strength](fig3_results.png)
+
 Gradient boosting feature importances:
 
 | Feature | Importance |
@@ -60,6 +68,8 @@ Gradient boosting feature importances:
 Water-to-binder ratio and the two age terms account for 80% of the model's decisions, which matches what concrete theory predicts drives strength.
 
 The more telling comparison is water_binder at 0.419 against raw water at 0.021 and slag at 0.016. Once the ratio was available, the individual ingredient masses became nearly worthless to the model. The ratio captured the mechanism rather than just adding a column.
+
+In the predicted-against-measured plot, points sit evenly about the line through the middle of the range. The strongest mixes, above about 60 MPa, fall slightly below it, so the model under-predicts them. That is the conservative direction, and it happens because high-strength mixes are sparse in the training data.
 
 ## Feature engineering only helps a model that needs it
 
@@ -103,7 +113,7 @@ The model extrapolated a physical relationship past the range where it is valid.
 - 1030 laboratory mixes from a single 1998 study. Curing conditions, aggregate type, cement class and admixture brand are not recorded, all of which affect strength in practice.
 - Trained on lab specimens, not site-batched concrete, so it would need recalibration before use on a real batching plant.
 - Unreliable below a water-to-binder ratio of about 0.35, for the reason above.
-- Repeat cube tests on the same mix vary by a few MPa on their own, so an RMSE of 4.72 MPa is approaching the repeatability of the measurement rather than a limit of the method.
+- Part of the remaining error is measurement scatter rather than model error. Repeat cube tests on nominally identical concrete do not give identical results, so there is a floor below which no model can go on this data.
 
 ## Running it
 
